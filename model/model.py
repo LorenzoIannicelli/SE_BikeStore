@@ -1,3 +1,5 @@
+import copy
+
 from networkx.classes import neighbors
 
 from database.dao import DAO
@@ -9,6 +11,9 @@ class Model:
         self._list_products = []
         self._dict_products = {} # map id -> product
         self._list_sales = []
+
+        self._best_percorso = []
+        self._max_costo = 0
 
     def get_date_range(self):
         return DAO.get_date_range()
@@ -28,6 +33,9 @@ class Model:
             result.append((p1, score))
 
         return result
+
+    def get_nodes(self):
+        return self._G.nodes()
 
     def build_graph(self, c, start, end):
         self._G.clear()
@@ -50,3 +58,35 @@ class Model:
                     self._G.add_edge(s1.product, s.product, weight=weight)
 
         return self._G.number_of_nodes(), self._G.number_of_edges()
+
+    def get_percorso(self, start_id, end_id, l):
+        start = self._dict_products[start_id]
+        end = self._dict_products[end_id]
+        parziale = [start]
+        self._ricorsione(parziale, end, l)
+
+        return self._best_percorso, self._max_costo
+
+    def _ricorsione(self, parziale, end, l):
+        if len(parziale) == l:
+            if parziale[-1] == end:
+                peso = self.calcola_peso(parziale)
+                if peso > self._max_costo:
+                    self._max_costo = peso
+                    self._best_percorso = copy.deepcopy(parziale)
+            return
+
+        for p in self._G.successors(parziale[-1]):
+            if p not in parziale:
+                parziale.append(p)
+                self._ricorsione(parziale, end, l)
+                parziale.pop()
+
+    def calcola_peso(self, parziale):
+        peso = 0
+        for i in range(len(parziale)-1):
+            u = parziale[i]
+            v = parziale[i+1]
+            peso += self._G[u][v]['weight']
+
+        return peso

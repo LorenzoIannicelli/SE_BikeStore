@@ -28,6 +28,11 @@ class Controller:
 
         return result
 
+    def populate_dd_p(self, dd):
+        nodes = self._model.get_nodes()
+        for n in nodes:
+            dd.options.append(ft.DropdownOption(key= n.id, text=n.product_name))
+
     def handle_crea_grafo(self, e):
         """ Handler per gestire creazione del grafo """
         category = int(self._view.dd_category.value)
@@ -47,6 +52,9 @@ class Controller:
         self._view.txt_risultato.controls.append(ft.Text(txt1))
         self._view.txt_risultato.controls.append(ft.Text(txt2))
 
+        self.populate_dd_p(self._view.dd_prodotto_iniziale)
+        self.populate_dd_p(self._view.dd_prodotto_finale)
+
         self._view.update()
 
 
@@ -64,4 +72,21 @@ class Controller:
 
     def handle_cerca_cammino(self, e):
         """ Handler per gestire il problema ricorsivo di ricerca del cammino """
-        # TODO
+        try :
+            start_id = self._view.dd_prodotto_iniziale.value
+            end_id = self._view.dd_prodotto_finale.value
+            l = int(self._view.txt_lunghezza_cammino.value)
+
+            percorso, costo = self._model.get_percorso(start_id, end_id, l)
+
+            self._view.txt_risultato.controls.clear()
+
+            self._view.txt_risultato.controls.append(ft.Text('Cammino migliore:'))
+            for p in percorso:
+                self._view.txt_risultato.controls.append(ft.Text(p))
+            self._view.txt_risultato.controls.append(ft.Text(f'Score: {costo}'))
+
+            self._view.update()
+
+        except ValueError:
+            self._view.show_alert('Inserire un valore valido (int).')
