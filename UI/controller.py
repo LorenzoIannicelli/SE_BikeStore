@@ -77,7 +77,7 @@ class Controller:
             end_id = self._view.dd_prodotto_finale.value
             l = int(self._view.txt_lunghezza_cammino.value)
 
-            percorso, costo = self._model.get_percorso(start_id, end_id, l)
+            percorso, costo = self._model.get_percorso(int(start_id), int(end_id), l)
 
             self._view.txt_risultato.controls.clear()
 
